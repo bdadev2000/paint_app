@@ -4,30 +4,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
     android:background="@color/white"
-    >
+    tools:context=".MainActivity">
 
     <com.bdadev.paintapp.DrawCanvas
         android:id="@+id/drawCanvas"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_margin="10dp"
+        android:background="@drawable/background_draw_canvas"
+        app:layout_constraintBottom_toTopOf="@+id/btn_brush_size"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <RelativeLayout
+        android:id="@+id/btn_brush_size"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/drawCanvas"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="16dp"
+        >
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_bush_size"/>
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
