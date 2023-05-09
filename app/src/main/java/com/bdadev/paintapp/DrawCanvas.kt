@@ -23,6 +23,7 @@ class DrawCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
     private var color = Color.BLACK
     private var canvas: Canvas? = null
     private val mPaths = ArrayList<CustomPath>()
+    private val mUndoPaths = ArrayList<CustomPath>()
 
     init {
         setupDrawing()
@@ -36,7 +37,6 @@ class DrawCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
         mDrawPaint?.strokeJoin = Paint.Join.ROUND
         mDrawPaint?.strokeCap = Paint.Cap.ROUND
         mCanvasPaint = Paint(Paint.DITHER_FLAG)
-//        mBrushSize = 20.toFloat()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -99,6 +99,13 @@ class DrawCanvas(context: Context, attrs: AttributeSet) : View(context, attrs) {
     fun setBrushColor(newColor : Int){
         color = newColor
         mDrawPaint!!.color = color
+    }
+
+    fun onClickUndo(){
+        if(mPaths.size>0){
+            mUndoPaths.add(mPaths.removeAt(mPaths.size-1))
+            invalidate()
+        }
     }
 
     private inner class CustomPath(var color: Int, var brushThick: Float) : Path() {

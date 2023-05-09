@@ -91,6 +91,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnChooseImage.setOnClickListener {
             requestStoragePermission()
         }
+
+        binding.btnUndo.setOnClickListener {
+            binding.drawCanvas.onClickUndo()
+        }
     }
 
 
