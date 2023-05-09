@@ -3,4 +3,7 @@
     <string name="choose_brush_size">Choose brush size</string>
     <string name="choose_color">Choose color</string>
     <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="permission_granted_now_you_can_read_the_storage_files">Permission granted now you can read the storage files</string>
+    <string name="oops_you_just_denied_the_permission">Oops you just denied the permission</string>
 </resources>
