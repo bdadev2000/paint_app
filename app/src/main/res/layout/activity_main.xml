@@ -40,7 +40,6 @@
         android:layout_marginBottom="16dp"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/container">
 
@@ -102,12 +101,27 @@
         android:layout_height="40dp"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="@+id/btn_brush_size"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_share"
         app:layout_constraintStart_toEndOf="@+id/btn_undo"
         app:layout_constraintTop_toTopOf="@+id/btn_brush_size">
         <ImageView
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/ic_save" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/btn_share"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_brush_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_save"
+        app:layout_constraintTop_toTopOf="@+id/btn_brush_size">
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_share" />
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

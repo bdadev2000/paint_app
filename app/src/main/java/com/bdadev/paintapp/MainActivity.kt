@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.media.MediaScannerConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -29,34 +30,41 @@ import java.io.File
 import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
-    companion object{
-        private const val STORAGE_PERMISSION_CODE = 1
-        private const val GALLERY = 2
-    }
 
     private lateinit var binding: ActivityMainBinding
-    private val openGalleryLauncher : ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-        result ->
-        if(result.resultCode == RESULT_OK && result.data!=null){
-            binding.imgBackground.setImageURI(result?.data?.data)
+    var customProgressDialog: Dialog? = null
+    private val openGalleryLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                binding.imgBackground.setImageURI(result?.data?.data)
+            }
         }
-    }
-    private val requestPermission : ActivityResultLauncher<Array<String>> = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){
-        permissions ->
-        permissions.entries.forEach{
-            val permissionName = it.key
-            val isGranted = it.value
-            if(isGranted){
-                Toast.makeText(this@MainActivity,getString(R.string.permission_granted_now_you_can_read_the_storage_files),Toast.LENGTH_SHORT).show()
-                val pickerIntent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                openGalleryLauncher.launch(pickerIntent)
-            }else{
-                if(permissionName==android.Manifest.permission.READ_EXTERNAL_STORAGE){
-                    Toast.makeText(this@MainActivity,getString(R.string.oops_you_just_denied_the_permission),Toast.LENGTH_SHORT).show()
+    private val requestPermission: ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            permissions.entries.forEach {
+                val permissionName = it.key
+                val isGranted = it.value
+                if (isGranted) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.permission_granted_now_you_can_read_the_storage_files),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    val pickerIntent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    openGalleryLauncher.launch(pickerIntent)
+                } else {
+                    if (permissionName == android.Manifest.permission.READ_EXTERNAL_STORAGE) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.oops_you_just_denied_the_permission),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         }
-    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -115,8 +123,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnSave.setOnClickListener {
-            if(isReadStorageAllowed()){
-                lifecycleScope.launch{
+            showProgressDialog()
+            if (isReadStorageAllowed()) {
+                lifecycleScope.launch {
                     saveBitmapFile(getBitmapFromView(binding.container))
                 }
 
@@ -124,65 +133,115 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun isReadStorageAllowed() : Boolean{
-        val result = ContextCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)
+    private fun isReadStorageAllowed(): Boolean {
+        val result = ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        )
         return result == PackageManager.PERMISSION_GRANTED
     }
-    private fun requestStoragePermission(){
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this@MainActivity,android.Manifest.permission.READ_EXTERNAL_STORAGE)){
-            showDialog("Drawing App","Need to access your external storage")
-        }else{
-            requestPermission.launch(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,android.Manifest.permission.WRITE_EXTERNAL_STORAGE))
+
+    private fun requestStoragePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this@MainActivity,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) {
+            showDialog("Drawing App", "Need to access your external storage")
+        } else {
+            requestPermission.launch(
+                arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+            )
         }
     }
-    private fun showDialog(title : String, message : String){
-        val builder : AlertDialog.Builder = AlertDialog.Builder(this)
+
+    private fun showDialog(title: String, message: String) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         builder.setTitle(title)
             .setMessage(message)
-            .setPositiveButton(getString(R.string.cancel)){dialog,_->
+            .setPositiveButton(getString(R.string.cancel)) { dialog, _ ->
                 dialog.dismiss()
             }
         builder.create().show()
     }
 
-    private fun getBitmapFromView(view: View) : Bitmap{
-        val returnedBitmap = Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
+    private fun getBitmapFromView(view: View): Bitmap {
+        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(returnedBitmap)
         val bgDrawable = view.background
-        if(bgDrawable!=null){
+        if (bgDrawable != null) {
             bgDrawable.draw(canvas)
-        }else{
+        } else {
             canvas.drawColor(Color.WHITE)
         }
         view.draw(canvas)
-        return  returnedBitmap
+        return returnedBitmap
     }
 
-    private suspend fun saveBitmapFile(mBitmap : Bitmap?) : String{
+    private suspend fun saveBitmapFile(mBitmap: Bitmap?): String {
         var result = ""
-        withContext(Dispatchers.IO){
-            if (mBitmap!=null){
+        withContext(Dispatchers.IO) {
+            if (mBitmap != null) {
                 try {
                     val bytes = ByteArrayOutputStream()
-                    mBitmap.compress(Bitmap.CompressFormat.PNG,90,bytes)
-                    val f = File(externalCacheDir?.absoluteFile.toString() + File.separator + "PainApp_" + System.currentTimeMillis() / 1000 + ".png")
+                    mBitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+                    val f =
+                        File(externalCacheDir?.absoluteFile.toString() + File.separator + "PainApp_" + System.currentTimeMillis() / 1000 + ".png")
                     val fo = FileOutputStream(f)
                     fo.write(bytes.toByteArray())
                     fo.close()
                     result = f.absolutePath
-                    runOnUiThread{
-                        if(result.isNotEmpty()){
-                            Toast.makeText(this@MainActivity,"File saved successfully: $result",Toast.LENGTH_SHORT).show()
-                        }else{
-                            Toast.makeText(this@MainActivity,"Something save file went wrong: $result",Toast.LENGTH_SHORT).show()
+                    runOnUiThread {
+                        cancelProgressDialog()
+                        if (result.isNotEmpty()) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "File saved successfully: $result",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            shareImage(result)
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Something save file went wrong: $result",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
-                }catch (e:Exception){
+                } catch (e: Exception) {
                     result = ""
                     e.printStackTrace()
                 }
             }
         }
         return result
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog = Dialog(this@MainActivity)
+        customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        customProgressDialog?.show()
+    }
+
+    private fun cancelProgressDialog() {
+        if (customProgressDialog != null) {
+            customProgressDialog?.dismiss()
+            customProgressDialog = null
+        }
+    }
+
+    private fun shareImage(result: String) {
+        MediaScannerConnection.scanFile(this, arrayOf(result), null) { path, uri ->
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
+            shareIntent.type = "image/png"
+            startActivity(Intent.createChooser(shareIntent, "Share"))
+        }
+
     }
 }
