@@ -5,6 +5,6 @@ Dùng để trải nghiệm vẽ trên điện thoại thay vì vẽ bằng gi�
 Kotlin
 
 # Công nghệ sử dụng chính:
-Canvas
-Permission
-Coroutine
+- Canvas
+- Permission
+- Coroutine
