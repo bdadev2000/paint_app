@@ -1,4 +1,5 @@
-# Chức năng : Dùng để trải nghiệm vẽ trên điện thoại thay vì vẽ bằng giấy
+# Chức năng ứng dụng:
+Dùng để trải nghiệm vẽ trên điện thoại thay vì vẽ bằng giấy
 
 # Ngôn ngữ:
 Kotlin
